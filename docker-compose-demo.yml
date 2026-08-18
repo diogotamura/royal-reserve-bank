@@ -1,0 +1,20 @@
+version: "3.8"
+
+# LOCAL DEMONSTRATION ONLY. Never use this override in a real environment.
+services:
+  api-gateway:
+    image: royal-reserve-bank/api-gateway:demo
+    pull_policy: never
+    environment:
+      spring.profiles.active: demo,docker
+      spring.cloud.config.uri: http://config-server:8888/config-server
+
+  demo-ui:
+    image: nginx:1.27-alpine
+    container_name: royal-reserve-bank-demo-ui
+    ports:
+      - "8085:80"
+    volumes:
+      - ./docs/demo/demo-ui:/usr/share/nginx/html:ro
+    depends_on:
+      - api-gateway

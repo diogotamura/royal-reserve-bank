@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -28,6 +29,7 @@ import com.auth0.jwk.UrlJwkProvider;
  */
 @Configuration
 @EnableWebFluxSecurity
+@Profile("!demo")
 @Getter
 public class SecurityConfig {
     @Value("${encodedJwt}")

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Royal Reserve Bank | Local Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">
+        <span class="brand-mark">RR</span>
+        <div>
+            <p class="eyebrow">Royal Reserve Bank</p>
+            <h1>Operations Console</h1>
+        </div>
+    </div>
+    <div class="environment-badge">LOCAL DEMO</div>
+</header>
+
+<main class="page-shell">
+    <section class="intro">
+        <p class="eyebrow">Gateway-connected workflow</p>
+        <h2>Run a complete banking flow</h2>
+        <p>Open an account, review persisted records, and submit a transaction through the API Gateway.</p>
+    </section>
+
+    <section class="connection-panel panel">
+        <div>
+            <p class="eyebrow">Connection</p>
+            <h3>Optional bearer token</h3>
+            <p class="muted">Leave blank when the gateway is running with the local <code>demo</code> profile.</p>
+        </div>
+        <label class="token-field">
+            <span>Bearer token</span>
+            <input id="token" type="password" autocomplete="off" placeholder="Paste token only when required">
+        </label>
+    </section>
+
+    <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+
+    <div class="grid">
+        <section class="panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">01 · Accounts</p>
+                    <h3>Open an account</h3>
+                </div>
+            </div>
+            <form id="account-form">
+                <label>
+                    <span>Account holder</span>
+                    <input id="account-holder" required maxlength="120" placeholder="Alex Morgan">
+                </label>
+                <div class="form-row">
+                    <label>
+                        <span>Opening balance</span>
+                        <input id="account-balance" type="number" min="0" step="0.01" value="10000" required>
+                    </label>
+                    <label>
+                        <span>Currency</span>
+                        <select id="account-currency">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="JPY">JPY</option>
+                        </select>
+                    </label>
+                </div>
+                <button type="submit">Open account</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">02 · Transactions</p>
+                    <h3>Submit a transaction</h3>
+                </div>
+            </div>
+            <form id="transaction-form">
+                <div class="form-row">
+                    <label>
+                        <span>Asset code</span>
+                        <input id="asset-code" required value="SEC" maxlength="30">
+                    </label>
+                    <label>
+                        <span>Value</span>
+                        <input id="asset-value" type="number" min="1" step="1" value="2000" required>
+                    </label>
+                </div>
+                <label>
+                    <span>Asset name</span>
+                    <input id="asset-name" required value="Corporate bonds" maxlength="120">
+                </label>
+                <p class="form-hint">Try <strong>SEC</strong> for an available asset or <strong>DERIV</strong> to show the unavailable-asset fallback.</p>
+                <button type="submit">Submit transaction</button>
+            </form>
+            <div id="transaction-result" class="result-box" hidden></div>
+        </section>
+    </div>
+
+    <section class="panel accounts-panel">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">03 · Records</p>
+                <h3>Accounts on record</h3>
+            </div>
+            <button id="refresh-accounts" class="button-secondary" type="button">Refresh list</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Holder</th>
+                    <th>Account number</th>
+                    <th>Balance</th>
+                    <th>Currency</th>
+                </tr>
+                </thead>
+                <tbody id="accounts-table">
+                <tr>
+                    <td colspan="4" class="empty-state">No records loaded yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <span>Royal Reserve Bank · Local demonstration environment</span>
+    <span>Gateway: http://localhost:8080</span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
