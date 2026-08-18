@@ -16,13 +16,26 @@ Tudo abaixo foi verificado nesta stack (Java 17, Maven, Docker Engine 27.4.1). F
 
 ## D-0, 1 hora antes
 
-- [ ] Subir a stack local (para a evidência no browser):
+- [ ] Construir a imagem local do gateway com o perfil de demo (só na primeira vez, ou após mudar o
+      gateway):
 
 ```bash
 cd ~/repos/royal-reserve-bank
-docker compose -f docker-compose-infrastructure-services.yml up -d   # infra
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+mvn -B -pl api-gateway -DskipTests package jib:dockerBuild \
+  -Djib.to.image=royal-reserve-bank/api-gateway:demo
+```
+
+- [ ] Subir a stack local (para a evidência no browser):
+
+```bash
+docker compose -f docker-compose-infrastructure-services.yml up -d    # infra
 docker compose -f docker-compose.yml -f docker-compose-demo.yml up -d # stack + UI de demo
 ```
+
+> O override `docker-compose-demo.yml` ativa o perfil Spring `demo` no gateway, que libera as rotas
+> para a UI local. Sem esse perfil o comportamento é o normal (401 sem token válido). É um caminho
+> exclusivo de demonstração local.
 
 - [ ] Validar os pontos que você vai mostrar (todos verificados sem token):
   - Eureka (7 serviços registrados): http://localhost:8761/ e http://localhost:8761/eureka/apps
@@ -36,6 +49,9 @@ docker compose -f docker-compose.yml -f docker-compose-demo.yml up -d # stack + 
 ```bash
 JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn -B test
 ```
+
+- [ ] Exercitar a UI de demo uma vez antes da call: abrir conta, ver a conta na listagem, fazer uma
+      transação com ativo disponível e uma com `DERIV` (mostra o fallback do circuit breaker).
 
 - [ ] Abrir as abas na ordem da demo e deixar prontas: Wiki → Chat → Sessão em execução → Knowledge →
       Playbooks → Rules/Automações → Segurança → Pricing.
@@ -52,6 +68,8 @@ JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn -B test
 | Comandos do README usam sintaxe antiga (`docker-compose <arquivo> up`) | Use `docker compose -f <arquivo> up -d` |
 | Módulos `config-server`, `discovery-server` e `api-gateway` "não têm testes" | Eles só têm classes `*IT`, fora do padrão do Surefire — não é ausência de teste |
 | Não há Swagger/OpenAPI no projeto | A navegação visual é pela UI de demo (`docs/demo/demo-ui/`), Eureka, Zipkin e Grafana |
+| Gateway sobe sem o perfil demo mesmo com o override | A imagem `royal-reserve-bank/api-gateway:demo` precisa ter sido construída com o jib (passo acima); confira `docker logs api-gateway` |
+| Build falha com `NoSuchFieldError: JCTree$JCImport` | Você está usando Java 21 no código atual (Boot 3.0.6 + Lombok antigo); use `JAVA_HOME` de Java 17 |
 
 ## Fatos verificados que valem citar ao vivo
 
