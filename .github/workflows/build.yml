@@ -60,7 +60,9 @@ jobs:
 
       - name: Start config-server for config-dependent tests
         run: |
-          nohup mvn -B -pl config-server spring-boot:run > "$RUNNER_TEMP/config-server.log" 2>&1 &
+          nohup mvn -B -pl config-server spring-boot:run \
+            -Dspring-boot.run.arguments="--spring.cloud.config.server.native.searchLocations=file:$GITHUB_WORKSPACE/config-files" \
+            > "$RUNNER_TEMP/config-server.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/config-server.pid"
 
       - name: Wait for config-server
