@@ -1,4 +1,11 @@
 const API_BASE = "http://localhost:8080";
+const ASSET_NAMES = {
+    SEC: "Corporate bonds",
+    BTC: "Bitcoin",
+    INV: "Stocks",
+    LEASE: "Lease agreements",
+    DERIV: "Options contracts"
+};
 
 const elements = {
     token: document.querySelector("#token"),
@@ -14,6 +21,11 @@ const elements = {
     transactionResult: document.querySelector("#transaction-result"),
     refreshAccounts: document.querySelector("#refresh-accounts"),
     accountsTable: document.querySelector("#accounts-table")
+};
+
+const submissions = {
+    account: false,
+    transaction: false
 };
 
 function headers() {
@@ -90,12 +102,22 @@ async function loadAccounts(showMessage = false) {
 
 elements.accountForm.addEventListener("submit", async event => {
     event.preventDefault();
-    const button = event.submitter;
+    if (submissions.account) {
+        return;
+    }
+    const button = event.submitter || event.currentTarget.querySelector("button[type=\"submit\"]");
+    const balance = Number(elements.accountBalance.value);
+    if (!Number.isFinite(balance) || balance <= 0) {
+        showFeedback("Opening balance must be greater than zero.", "error");
+        elements.accountBalance.focus();
+        return;
+    }
+    submissions.account = true;
     button.disabled = true;
     try {
         const body = {
             accountHolderName: elements.accountHolder.value.trim(),
-            balance: Number(elements.accountBalance.value),
+            balance,
             currency: elements.accountCurrency.value
         };
         const message = await request("/api/account", {
@@ -107,13 +129,18 @@ elements.accountForm.addEventListener("submit", async event => {
     } catch (error) {
         showFeedback(`Account could not be opened. ${error.message}`, "error");
     } finally {
+        submissions.account = false;
         button.disabled = false;
     }
 });
 
 elements.transactionForm.addEventListener("submit", async event => {
     event.preventDefault();
-    const button = event.submitter;
+    if (submissions.transaction) {
+        return;
+    }
+    const button = event.submitter || event.currentTarget.querySelector("button[type=\"submit\"]");
+    submissions.transaction = true;
     button.disabled = true;
     elements.transactionResult.hidden = true;
     try {
@@ -139,10 +166,16 @@ elements.transactionForm.addEventListener("submit", async event => {
         elements.transactionResult.hidden = false;
         showFeedback(`Transaction request failed. ${error.message}`, "error");
     } finally {
+        submissions.transaction = false;
         button.disabled = false;
     }
 });
 
+elements.assetCode.addEventListener("change", () => {
+    elements.assetName.value = ASSET_NAMES[elements.assetCode.value];
+});
+
 elements.refreshAccounts.addEventListener("click", () => loadAccounts(true));
 
+elements.assetName.value = ASSET_NAMES[elements.assetCode.value];
 loadAccounts();

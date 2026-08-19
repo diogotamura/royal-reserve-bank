@@ -42,6 +42,24 @@ description: Start and validate the Royal Reserve Bank local Docker stack.
 
    Open `http://localhost:8085`. The override enables the opt-in `demo` Spring profile and serves the static UI. It is not for real environments.
 
+   Notes learned while testing the demo UI:
+
+   - Build the gateway image with Java 17 (`export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64`); Java 21 fails on the pinned Lombok.
+   - After a machine restart the containers are gone but images/volumes survive: re-run steps 1 and 4; `config-server` may exit 255 once before stabilising.
+   - Give the stack ~2 minutes. Until `account-api` registers, `GET http://localhost:8080/api/account` returns a 503 `Service Unavailable` JSON body, which the UI surfaces as "Could not load accounts". Confirm readiness with
+     `curl -s http://localhost:8761/eureka/apps | grep -o '<name>[^<]*'` (expect CONFIG-SERVER, DISCOVERY registrations, API-GATEWAY, ACCOUNT-API, TRANSACTION-API, ASSET-MANAGEMENT-API, NOTIFICATION-API).
+   - Seeded asset codes come from `asset-management-api/.../util/AssetTestData.java`; availability is `value > 0`, so `SEC`/`BTC`/`INV`/`LEASE` succeed and `DERIV` (value 0) triggers the Resilience4j fallback `Oops! Something went wrong, please try again later!`.
+   - To check that the non-demo path is still JWT-protected without touching the compose stack, run a throwaway gateway on the same network:
+
+     ```bash
+     docker run -d --rm --name gw-nodemo --network royal-reserve-bank_default -p 8081:8080 \
+       -e spring.profiles.active=docker \
+       -e spring.cloud.config.uri=http://config-server:8888/config-server \
+       royal-reserve-bank/api-gateway:demo
+     sleep 60 && curl -i http://localhost:8081/api/account   # expect 401 Unauthorized
+     docker stop gw-nodemo
+     ```
+
 5. Stop the stack when finished:
 
    ```bash

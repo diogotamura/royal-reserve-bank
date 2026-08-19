@@ -169,6 +169,13 @@ label > span {
     margin-bottom: 8px;
 }
 
+.field-hint {
+    color: var(--ink-muted);
+    display: block;
+    font-size: 0.78rem;
+    margin-top: 0.4rem;
+}
+
 input,
 select {
     width: 100%;
