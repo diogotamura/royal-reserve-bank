@@ -23,6 +23,11 @@
         <java-jwt.version>4.4.0</java-jwt.version>
         <jwks-rsa.version>0.22.0</jwks-rsa.version>
         <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
+        <dependency-check-maven.version>9.2.0</dependency-check-maven.version>
+        <!-- If an NVD API key is available, override this via -Dnvd.api.key=...
+             or wire it from the NVD_API_KEY environment variable in CI to speed
+             up NVD data downloads. -->
+        <nvd.api.key/>
     </properties>
 
     <modules>
@@ -116,6 +121,27 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency-check-maven.version}</version>
+                <configuration>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                    <nvdApiKey>${nvd.api.key}</nvdApiKey>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
