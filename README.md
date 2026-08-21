@@ -100,7 +100,7 @@ The key architectural patterns used in the project include:
 
 ### To run the microservices in your local environment:
 
-- Ensure that you have Java 17, Maven, and a compatible IDE (such as [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) or [Eclipse](https://www.eclipse.org/downloads/)) installed and properly configured.
+- Ensure that you have Java 21, Maven, and a compatible IDE (such as [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) or [Eclipse](https://www.eclipse.org/downloads/)) installed and properly configured.
 - Clone the repository and navigate to the project directory.
 - Start the supporting services in Docker using Docker Compose by running the command `docker-compose docker-compose-infrastructure-services.yml up -d`.
 - To launch the applications, run each application in its respective module. Note that the config-server module should be started first.
@@ -115,7 +115,7 @@ The key architectural patterns used in the project include:
 
 The Royal Reserve Bank project utilizes the following technologies and frameworks:
 
-- **Java 17:** for implementing the microservices.
+- **Java 21:** for implementing the microservices.
 - **Spring Boot:** for simplifying the development and deployment of microservices by using pre-configured templates and tools.
 - **Spring Cloud:** for implementing microservices architectural patterns, such as service discovery, configuration management, and circuit breakers.
 - **Docker:** for containerization of microservices, making it easy to package and deploy the microservices across different environments.
