@@ -163,6 +163,17 @@ services:
       - asset-management-api
       - transaction-api
 
+  risk-score-api:
+    container_name: risk-score-api
+    image: 0145136798/risk-score-api
+    pull_policy: missing
+    environment:
+      spring.profiles.active: docker
+      spring.cloud.config.uri: http://config-server:8888/config-server
+    depends_on:
+      - api-gateway
+    restart: on-failure
+
   transaction-api:
     container_name: transaction-api
     image: 0145136798/transaction-api

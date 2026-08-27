@@ -31,6 +31,7 @@
         <module>api-gateway</module>
         <module>account-api</module>
         <module>asset-management-api</module>
+        <module>risk-score-api</module>
         <module>transaction-api</module>
         <module>notification-api</module>
     </modules>

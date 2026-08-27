@@ -21,6 +21,12 @@ scrape_configs:
       - targets: ['asset-management-api:8080']
         labels:
           application: 'Asset-management-API'
+  - job_name: 'risk-score-api'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['risk-score-api:8080']
+        labels:
+          application: 'Risk-Score-API'
   - job_name: 'notification-api'
     metrics_path: '/actuator/prometheus'
     static_configs:

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.royal.reserve.bank.transaction.api.dto.RiskLevel;
+
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -22,6 +24,9 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String transactionId;
+    private Integer riskScore;
+    @Enumerated(EnumType.STRING)
+    private RiskLevel riskLevel;
     @OneToMany(cascade = CascadeType.ALL)
     private List<TransactionItems> transactionItemsList;
 }

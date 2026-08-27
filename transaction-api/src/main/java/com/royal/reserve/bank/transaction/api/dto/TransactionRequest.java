@@ -13,5 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionRequest {
+    private String accountId;
     private List<TransactionItemsDto> transactionItemsDtoList;
 }

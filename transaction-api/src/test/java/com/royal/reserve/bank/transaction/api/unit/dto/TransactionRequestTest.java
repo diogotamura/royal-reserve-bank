@@ -24,9 +24,10 @@ class TransactionRequestTest {
         List<TransactionItemsDto> expectedItemList = Arrays.asList(item1, item2);
 
         // When
-        TransactionRequest request = new TransactionRequest(expectedItemList);
+        TransactionRequest request = new TransactionRequest("ACC-123", expectedItemList);
 
         // Then
+        Assertions.assertEquals("ACC-123", request.getAccountId());
         Assertions.assertEquals(expectedItemList, request.getTransactionItemsDtoList());
     }
 }

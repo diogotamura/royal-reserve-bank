@@ -73,6 +73,7 @@ class TransactionControllerIT {
         transactionItemsDtoList.add(secondItem);
 
         TransactionRequest request = new TransactionRequest();
+        request.setAccountId("ACC-123");
         request.setTransactionItemsDtoList(transactionItemsDtoList);
 
         return request;

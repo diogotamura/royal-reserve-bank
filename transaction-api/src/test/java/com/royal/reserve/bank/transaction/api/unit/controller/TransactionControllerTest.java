@@ -40,7 +40,7 @@ class TransactionControllerTest {
         TransactionItemsDto item2 = new TransactionItemsDto(2L, "GOOGL", "Alphabet Inc.",
                 10200);
         List<TransactionItemsDto> transactionItemList = Arrays.asList(item1, item2);
-        request = new TransactionRequest(transactionItemList);
+        request = new TransactionRequest("ACC-123", transactionItemList);
     }
 
     /**
