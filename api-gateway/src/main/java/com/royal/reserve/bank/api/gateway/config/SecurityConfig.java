@@ -14,8 +14,7 @@ import org.springframework.web.server.WebFilter;
 
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.interfaces.RSAPublicKey;
 
 import com.auth0.jwt.JWT;
@@ -46,18 +45,21 @@ public class SecurityConfig {
      * @return the configured SecurityWebFilterChain object
      * @throws IOException                if an I/O error occurs while reading the public key
      * @throws JwkException               if an error occurs while fetching the JSON Web Key from the JwkProvider
-     * @throws URISyntaxException         if the configured JWK Set URI is invalid
      */
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity serverHttpSecurity)
-            throws IOException, JwkException, URISyntaxException {
+            throws IOException, JwkException {
         final DecodedJWT jwt = JWT.decode(encodedJwt);
         RSAPublicKey publicKey = loadPublicKey(jwt);
 
         serverHttpSecurity
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .csrf().disable()
                 .addFilterAt(jwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtSpec -> jwtSpec.publicKey(publicKey)))
+                .oauth2ResourceServer()
+                .jwt()
+                .publicKey(publicKey)
+                .and()
+                .and()
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers("/eureka/**", "/discovery-server/**")
                                 .permitAll()
@@ -73,10 +75,9 @@ public class SecurityConfig {
      * @return the RSAPublicKey object loaded from the JWK Set
      * @throws JwkException            if an error occurs while fetching the JSON Web Key from the JwkProvider
      * @throws MalformedURLException  if the JWK Set URL is malformed
-     * @throws URISyntaxException     if the JWK Set URI is invalid
      */
-    private RSAPublicKey loadPublicKey(DecodedJWT token) throws JwkException, MalformedURLException, URISyntaxException {
-        JwkProvider provider = new UrlJwkProvider(new URI(jwkSetUri).toURL());
+    private RSAPublicKey loadPublicKey(DecodedJWT token) throws JwkException, MalformedURLException {
+        JwkProvider provider = new UrlJwkProvider(new URL(jwkSetUri));
         return (RSAPublicKey) provider.get(token.getKeyId()).getPublicKey();
     }
 
