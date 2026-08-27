@@ -59,9 +59,9 @@ services:
       - "3306"
     environment:
       MYSQL_DATABASE: mysql
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: pwd
-      MYSQL_ROOT_PASSWORD: pwd
+      MYSQL_USER: ${MYSQL_USER:-admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pwd}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-pwd}
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - ./data/asset-management-api-mysql:/data/mysql
@@ -106,8 +106,8 @@ services:
     volumes:
       - ./data/grafana:/var/lib/grafana
     environment:
-      gf_security_admin_user: admin
-      gf_security_admin_password: password
+      gf_security_admin_user: ${GRAFANA_ADMIN_USER:-admin}
+      gf_security_admin_password: ${GRAFANA_ADMIN_PASSWORD:-password}
     #note: dashboard id: 11378
 
   notification-api:
@@ -150,6 +150,7 @@ services:
     depends_on:
       - account-api
       - asset-management-api
+      - risk-score-api
       - transaction-api
       - notification-api
 
@@ -166,7 +167,7 @@ services:
   risk-score-api:
     container_name: risk-score-api
     image: 0145136798/risk-score-api
-    pull_policy: missing
+    pull_policy: always
     environment:
       spring.profiles.active: docker
       spring.cloud.config.uri: http://config-server:8888/config-server
@@ -196,8 +197,8 @@ services:
       - "5432"
     environment:
       POSTGRES_DB: postgres
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
     volumes:
       - ./data/transaction-api-postgres:/data/postgres
 
