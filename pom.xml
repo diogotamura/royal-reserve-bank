@@ -20,7 +20,7 @@
         <spring-cloud.version>2023.0.5</spring-cloud.version>
         <testcontainers-bom.version>1.19.8</testcontainers-bom.version>
         <jib-maven-plugin.version>3.4.4</jib-maven-plugin.version>
-        <eclipse-temurin.version>21-jre</eclipse-temurin.version>
+        <eclipse-temurin.version>21.0.12_8-jre</eclipse-temurin.version>
         <java-jwt.version>4.4.0</java-jwt.version>
         <jwks-rsa.version>0.22.0</jwks-rsa.version>
         <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
