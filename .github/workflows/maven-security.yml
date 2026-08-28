@@ -1,0 +1,55 @@
+name: Dependency Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Cache NVD data
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-data-${{ github.run_id }}
+          restore-keys: nvd-data-
+
+      # -fae (fail-at-end) lets every module run dependency-check and produce
+      # its report even when an earlier module fails the CVSS threshold.
+      # The NVD API key property is only passed when the secret is set.
+      - name: Run OWASP Dependency-Check
+        run: |
+          if [ -n "$NVD_API_KEY" ]; then
+            mvn -B -fae -DskipTests -Dnvd.api.key="$NVD_API_KEY" verify
+          else
+            mvn -B -fae -DskipTests verify
+          fi
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload dependency-check reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-reports
+          path: |
+            **/target/dependency-check-report.html
+            **/target/dependency-check-report.json

@@ -161,6 +161,16 @@ To run the tests, follow these steps:
 - If you specifically want to run the integration tests, use the command `mvn failsafe:integration-test`.
 - Alternatively, if you prefer to run only the unit tests, use the command `mvn test -Dgroups="!integration"`.
 
+### Dependency Vulnerability Scan
+
+The project uses [OWASP Dependency-Check](https://owasp.org/www-project-dependency-check/) to list known CVEs in all dependencies (including transitive ones) of every module:
+
+- Open a terminal or command prompt and navigate to the project's root directory.
+- Run the command `mvn -DskipTests verify` (the `dependency-check-maven` plugin is bound to the `verify` phase).
+- Reports are generated at `<module>/target/dependency-check-report.html` (and `.json`) for each module.
+- The build fails if a vulnerability with CVSS >= 7 is found.
+- If you have an NVD API key, pass it with `-Dnvd.api.key=<your-key>` to speed up the vulnerability database download.
+
 ### Manual Testing
 
 To perform manual testing using Postman, follow these steps:
