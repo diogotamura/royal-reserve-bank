@@ -50,7 +50,11 @@ Tudo abaixo foi verificado no código do repositório `diogotamura/royal-reserve
   `AssetManagementClient` (`.../transaction/api/client/AssetManagementClient.java`,
   `@FeignClient` + `@Retry`) consumido no controller com `@CircuitBreaker`,
   `@TimeLimiter` e `@Retry` e um `fallbackMethod` que devolve mensagem amigável.
-  Os limites ficam em `config-files/transaction-api.properties`.
+  Atenção: as anotações usam a instância `asset-management`, mas
+  `config-files/transaction-api.properties` só configura a instância `inventory`
+  (`resilience4j.circuitbreaker.instances.inventory.*`, linhas 16-28) — ou seja,
+  o circuit breaker atual roda com os defaults do Resilience4j. Copiar esse
+  padrão sem criar a instância correspondente repete o problema.
 - **Assíncrono é Kafka.** O `transaction-api` produz `TransactionEvent` (apenas
   `transactionId`) e o `notification-api` consome em
   `NotificationApiApplication.handleNotification` — que hoje só faz `log.info`.
@@ -85,9 +89,12 @@ gravado em colunas novas na entidade `Transaction` (o `ddl-auto=update` de
 
 - Componentes: `transaction-api` (service, model, DTOs, controller), Postgres do
   transaction-api, `config-files/transaction-api*.properties`.
-- Dependências: enriquecer `TransactionRequest` com identificação da conta; um
-  Feign client novo para o `account-api` seguindo o padrão do
-  `AssetManagementClient`.
+- Dependências: enriquecer `TransactionRequest` com identificação da conta;
+  criar no `account-api` um endpoint de consulta por identificador — hoje
+  `AccountController` só expõe `GET /api/account` retornando todas as contas —
+  com DTO de resposta próprio; e um Feign client novo no `transaction-api`
+  seguindo o padrão do `AssetManagementClient`, com uma instância Resilience4j
+  de fato configurada.
 - Esforço: **P**.
 - Confiança: **85** — usa exatamente os padrões já existentes no serviço; o
   risco residual é de produto (as regras estarem certas), não técnico.
@@ -135,13 +142,17 @@ marca a transação para revisão, notificando por Kafka.
 
 ## Riscos
 
-- **Falta de dados para pontuar (bloqueante).** A transação não carrega conta,
-  cliente, canal, valor total nem timestamp (`TransactionRequest`,
-  `TransactionItems`), e não há histórico consultável (`TransactionRepository`
-  sem queries, sem endpoint de leitura). Qualquer score baseado em
-  comportamento (velocidade, desvio do padrão do cliente) exige antes ampliar o
-  contrato da transação e o modelo de dados. **Isso é pré-requisito das três
-  abordagens.**
+- **Dados disponíveis limitam os fatores possíveis.** Regras puramente
+  intrínsecas à operação (valor do item, soma dos itens, `assetCode` em lista
+  restritiva) já são calculáveis com o que `TransactionRequest` e
+  `TransactionItems` carregam hoje. O que **não** é possível sem mudar o modelo
+  é qualquer fator ligado ao cliente ou ao comportamento — velocidade de
+  transações, desvio do padrão histórico, reincidência, exposição por conta —
+  porque não há conta, cliente, canal nem timestamp no payload e não há
+  histórico consultável (`TransactionRepository` sem queries, sem endpoint de
+  leitura). Se a resposta à pergunta 3 (fatores do score) incluir qualquer fator
+  comportamental, ampliar o contrato e o modelo vira pré-requisito das três
+  abordagens.
 - **Isolamento de dados.** O score precisa de dados de conta, que vivem no Mongo
   do `account-api`; o acesso tem de ser via API, nunca ao banco do outro serviço.
 - **Compliance / explicabilidade.** Decisão automatizada que bloqueia operação
@@ -158,9 +169,11 @@ marca a transação para revisão, notificando por Kafka.
 
 ## Recomendação
 
-Começar pela **abordagem A**, precedida de um passo obrigatório de ampliar o
-contrato e o modelo da transação (conta/cliente, valor, timestamp) — sem esses
-dados nenhuma das abordagens produz score útil. A é a que entrega decisão
+Começar pela **abordagem A**. Se os fatores do score forem comportamentais (o
+caso mais provável em risco de fraude), ela precisa ser precedida de um passo de
+ampliar o contrato e o modelo da transação (conta/cliente, valor, timestamp);
+com fatores puramente intrínsecos à operação, esse passo não é necessário. A é a
+que entrega decisão
 síncrona no ponto onde a transação é aprovada, sem criar serviço, banco, rota e
 ponto de falha novos. Se o volume de regras crescer ou o score passar a ser
 consumido por outros canais, o `RiskScoreService` extrai-se depois para o
