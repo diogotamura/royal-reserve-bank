@@ -55,6 +55,18 @@ class TransactionControllerIT {
                 .andExpect(status().isCreated());
     }
 
+    @Test
+    void testProcessHighRiskTransactionWithFallback() throws Exception {
+        TransactionRequest request = createTransactionRequest();
+        when(transactionService.processTransaction(request))
+                .thenThrow(new IllegalArgumentException("Transaction blocked: risk score 100 exceeds the allowed threshold of 90"));
+        String jsonRequest = objectMapper.writeValueAsString(request);
+        mockMvc.perform(post("/api/transaction")
+                        .content(jsonRequest)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+    }
+
     private TransactionRequest createTransactionRequest() {
         List<TransactionItemsDto> transactionItemsDtoList = new ArrayList<>();
 

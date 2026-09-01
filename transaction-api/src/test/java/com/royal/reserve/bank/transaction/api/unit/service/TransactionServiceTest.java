@@ -5,11 +5,15 @@ import com.royal.reserve.bank.transaction.api.dto.AssetManagementResponse;
 import com.royal.reserve.bank.transaction.api.dto.TransactionItemsDto;
 import com.royal.reserve.bank.transaction.api.dto.TransactionRequest;
 import com.royal.reserve.bank.transaction.api.event.TransactionEvent;
+import com.royal.reserve.bank.transaction.api.model.RiskLevel;
 import com.royal.reserve.bank.transaction.api.model.Transaction;
 import com.royal.reserve.bank.transaction.api.repository.TransactionRepository;
+import com.royal.reserve.bank.transaction.api.service.RiskScoreService;
 import com.royal.reserve.bank.transaction.api.service.TransactionService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -38,14 +42,21 @@ class TransactionServiceTest {
     @Mock
     private KafkaTemplate<String, TransactionEvent> kafkaTemplate;
 
+    private RiskScoreService riskScoreService;
+
+    @BeforeEach
+    void setUp() {
+        riskScoreService = new RiskScoreService(0.001, 2, 100, 40, 70);
+        transactionService = new TransactionService(transactionRepository, assetManagementClient,
+                kafkaTemplate, riskScoreService);
+    }
+
     /**
      * Test method for {@link TransactionService#processTransaction(TransactionRequest)}.
      */
     @Test
     void processTransactionWithAvailableAssets_shouldSaveTransactionAndSendNotification() {
         // Given
-        transactionService = new TransactionService(transactionRepository,assetManagementClient,
-                kafkaTemplate);
         TransactionRequest transactionRequest = new TransactionRequest();
         TransactionItemsDto transactionItemsDto = new TransactionItemsDto();
         transactionItemsDto.setAssetCode("DVN");
@@ -68,9 +79,16 @@ class TransactionServiceTest {
 
         // Then
         assertEquals("Transaction completed successfully!", result);
-        verify(transactionRepository, times(1)).save(any(Transaction.class));
-        verify(kafkaTemplate, times(1)).send(eq("notificationTopic"),
-                any(TransactionEvent.class));
+
+        ArgumentCaptor<Transaction> savedTransaction = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository, times(1)).save(savedTransaction.capture());
+        assertEquals(2, savedTransaction.getValue().getRiskScore());
+        assertEquals(RiskLevel.LOW, savedTransaction.getValue().getRiskLevel());
+
+        ArgumentCaptor<TransactionEvent> publishedEvent = ArgumentCaptor.forClass(TransactionEvent.class);
+        verify(kafkaTemplate, times(1)).send(eq("notificationTopic"), publishedEvent.capture());
+        assertEquals(2, publishedEvent.getValue().getRiskScore());
+        assertEquals("LOW", publishedEvent.getValue().getRiskLevel());
     }
 
     /**
@@ -79,8 +97,6 @@ class TransactionServiceTest {
     @Test
     void processTransactionWithUnavailableAssets_shouldThrowIllegalArgumentException() {
         // Given
-        transactionService = new TransactionService(transactionRepository,assetManagementClient,
-                kafkaTemplate);
         TransactionRequest transactionRequest = new TransactionRequest();
         TransactionItemsDto transactionItemsDto = new TransactionItemsDto();
         transactionItemsDto.setAssetCode("DM");
@@ -90,6 +106,32 @@ class TransactionServiceTest {
 
         AssetManagementResponse assetManagementResponse = Mockito.mock(AssetManagementResponse.class);
         Mockito.when(assetManagementResponse.isAssetAvailable()).thenReturn(false);
+
+        Mockito.when(assetManagementClient.checkAssetAvailability(ArgumentMatchers.anyList()))
+                .thenReturn(Collections.singletonList(assetManagementResponse));
+
+        // When and Then
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.processTransaction(transactionRequest));
+        verify(transactionRepository, never()).save(any(Transaction.class));
+        verify(kafkaTemplate, never()).send(anyString(), any(TransactionEvent.class));
+    }
+
+    /**
+     * Test method for {@link TransactionService#processTransaction(TransactionRequest)}.
+     */
+    @Test
+    void processTransactionWithHighRiskScore_shouldThrowIllegalArgumentException() {
+        // Given
+        TransactionRequest transactionRequest = new TransactionRequest();
+        TransactionItemsDto transactionItemsDto = new TransactionItemsDto();
+        transactionItemsDto.setAssetCode("NVDA");
+        transactionItemsDto.setAssetName("NVIDIA Corporation");
+        transactionItemsDto.setValue(500000);
+        transactionRequest.setTransactionItemsDtoList(Collections.singletonList(transactionItemsDto));
+
+        AssetManagementResponse assetManagementResponse = Mockito.mock(AssetManagementResponse.class);
+        Mockito.when(assetManagementResponse.isAssetAvailable()).thenReturn(true);
 
         Mockito.when(assetManagementClient.checkAssetAvailability(ArgumentMatchers.anyList()))
                 .thenReturn(Collections.singletonList(assetManagementResponse));

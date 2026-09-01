@@ -24,6 +24,11 @@ public class NotificationApiApplication {
 	 */
 	@KafkaListener(topics = "notificationTopic")
 	public void handleNotification(TransactionEvent transactionEvent) {
-		log.info("Received notification for transaction: {}", transactionEvent.getTransactionId());
+		log.info("Received notification for transaction: {} (risk score: {}, risk level: {})",
+				transactionEvent.getTransactionId(), transactionEvent.getRiskScore(), transactionEvent.getRiskLevel());
+		if ("HIGH".equals(transactionEvent.getRiskLevel())) {
+			log.warn("High risk transaction detected: {} with risk score {}",
+					transactionEvent.getTransactionId(), transactionEvent.getRiskScore());
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package com.royal.reserve.bank.transaction.api.unit.model;
 
+import com.royal.reserve.bank.transaction.api.model.RiskLevel;
 import com.royal.reserve.bank.transaction.api.model.Transaction;
 import com.royal.reserve.bank.transaction.api.model.TransactionItems;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,8 @@ class TransactionTest {
         List<TransactionItems> transactionItemsList =
                 Arrays.asList(mockTransactionItems1, mockTransactionItems2);
         transaction.setTransactionItemsList(transactionItemsList);
+        transaction.setRiskScore(42);
+        transaction.setRiskLevel(RiskLevel.MEDIUM);
     }
 
     /**
@@ -56,6 +59,29 @@ class TransactionTest {
 
         // When and Then
         assertEquals(expectedItemsList, transaction.getTransactionItemsList());
+    }
+
+    @Test
+    void testGetRiskScore() {
+        // When and Then
+        assertEquals(42, transaction.getRiskScore());
+    }
+
+    @Test
+    void testGetRiskLevel() {
+        // When and Then
+        assertEquals(RiskLevel.MEDIUM, transaction.getRiskLevel());
+    }
+
+    @Test
+    void testSetRiskScoreAndRiskLevel() {
+        // When
+        transaction.setRiskScore(95);
+        transaction.setRiskLevel(RiskLevel.HIGH);
+
+        // Then
+        assertEquals(95, transaction.getRiskScore());
+        assertEquals(RiskLevel.HIGH, transaction.getRiskLevel());
     }
 
     @Test

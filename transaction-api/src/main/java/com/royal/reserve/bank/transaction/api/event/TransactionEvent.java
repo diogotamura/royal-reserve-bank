@@ -12,4 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TransactionEvent {
     private String transactionId;
+    private int riskScore;
+    private String riskLevel;
+
+    public TransactionEvent(String transactionId) {
+        this.transactionId = transactionId;
+    }
 }

@@ -24,5 +24,22 @@ class TransactionEventTest {
         // Then
         Assertions.assertEquals(expectedTransactionId, event.getTransactionId());
     }
+
+    /**
+     * Test for the {@link TransactionEvent#TransactionEvent(String, int, String)} constructor.
+     */
+    @Test
+    void testTransactionEventWithRiskScore() {
+        // Given
+        String expectedTransactionId = "13645941";
+
+        // When
+        TransactionEvent event = new TransactionEvent(expectedTransactionId, 85, "HIGH");
+
+        // Then
+        Assertions.assertEquals(expectedTransactionId, event.getTransactionId());
+        Assertions.assertEquals(85, event.getRiskScore());
+        Assertions.assertEquals("HIGH", event.getRiskLevel());
+    }
 }
 
