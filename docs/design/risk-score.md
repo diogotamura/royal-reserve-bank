@@ -27,6 +27,11 @@ Perguntas para o negócio:
 ### A. Motor de regras embutido no transaction-api (esforço P)
 
 Novo componente `RiskScoreService` dentro do `transaction-api`, chamado por `processTransaction` antes de salvar. Score por regras (ex.: soma dos `value` dos itens acima de um limite configurado em `config-files/transaction-api*.properties`, quantidade de transações recentes consultada no próprio PostgreSQL). Score persistido em coluna nova na tabela `t_transaction` e retornado na resposta.
+
+Observações de esquema e contrato:
+- A tabela `t_transaction` (`transaction-api/.../model/Transaction.java`) não tem timestamp; regras de frequência ("transações recentes") exigem adicionar uma coluna de data/hora além da coluna de score.
+- A resposta atual do endpoint é texto puro (`processTransaction` retorna `String` em `TransactionController`); devolver o score implica evoluir para uma resposta estruturada (JSON) — definir o schema e o plano de migração para consumidores existentes.
+
 - Componentes: transaction-api, config-files.
 - Dependências: nenhuma externa; requer incluir conta na `TransactionRequest` se o score considerar o cliente.
 
