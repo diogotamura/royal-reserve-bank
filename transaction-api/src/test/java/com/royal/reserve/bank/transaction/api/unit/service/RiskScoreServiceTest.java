@@ -74,6 +74,20 @@ class RiskScoreServiceTest {
         assertEquals(RiskLevel.LOW, riskAssessment.level());
     }
 
+    @Test
+    void assessTransactionWithNegativeValues_shouldIgnoreThemInsteadOfOffsettingTheScore() {
+        // Given
+        List<TransactionItems> transactionItems = List.of(transactionItem("NVDA", 500000),
+                transactionItem("MSFT", -499000));
+
+        // When
+        RiskAssessment riskAssessment = riskScoreService.assess(transactionItems);
+
+        // Then
+        assertEquals(100, riskAssessment.score());
+        assertEquals(RiskLevel.HIGH, riskAssessment.level());
+    }
+
     private TransactionItems transactionItem(String assetCode, int value) {
         TransactionItems transactionItems = new TransactionItems();
         transactionItems.setAssetCode(assetCode);

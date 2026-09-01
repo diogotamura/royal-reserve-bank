@@ -40,7 +40,7 @@ public class RiskScoreService {
      */
     public RiskAssessment assess(List<TransactionItems> transactionItems) {
         long totalValue = transactionItems == null ? 0L : transactionItems.stream()
-                .mapToLong(TransactionItems::getValue)
+                .mapToLong(item -> Math.max(0L, item.getValue()))
                 .sum();
         int itemCount = transactionItems == null ? 0 : transactionItems.size();
 

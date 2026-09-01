@@ -24,6 +24,7 @@ public class Transaction {
     private String transactionId;
     @OneToMany(cascade = CascadeType.ALL)
     private List<TransactionItems> transactionItemsList;
+    @Column(nullable = false, columnDefinition = "integer default 0")
     private int riskScore;
     @Enumerated(EnumType.STRING)
     private RiskLevel riskLevel;
