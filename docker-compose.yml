@@ -150,6 +150,7 @@ services:
     depends_on:
       - account-api
       - asset-management-api
+      - risk-assessment-api
       - transaction-api
       - notification-api
 
@@ -163,6 +164,17 @@ services:
       - asset-management-api
       - transaction-api
 
+  risk-assessment-api:
+    container_name: risk-assessment-api
+    image: 0145136798/risk-assessment-api
+    pull_policy: always
+    environment:
+      spring.profiles.active: docker
+      spring.cloud.config.uri: http://config-server:8888/config-server
+    depends_on:
+      - api-gateway
+    restart: on-failure
+
   transaction-api:
     container_name: transaction-api
     image: 0145136798/transaction-api
@@ -173,6 +185,7 @@ services:
     depends_on:
       - transaction-api-postgres
       - notification-api-kafka
+      - risk-assessment-api
       - api-gateway
     restart: on-failure
 
