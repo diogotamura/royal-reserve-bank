@@ -1,7 +1,11 @@
 package com.royal.reserve.bank.transaction.api.service;
 
 import com.royal.reserve.bank.transaction.api.client.AssetManagementClient;
+import com.royal.reserve.bank.transaction.api.client.RiskAssessmentClient;
 import com.royal.reserve.bank.transaction.api.dto.AssetManagementResponse;
+import com.royal.reserve.bank.transaction.api.dto.RiskAssessmentItem;
+import com.royal.reserve.bank.transaction.api.dto.RiskAssessmentRequest;
+import com.royal.reserve.bank.transaction.api.dto.RiskAssessmentResponse;
 import com.royal.reserve.bank.transaction.api.dto.TransactionItemsDto;
 import com.royal.reserve.bank.transaction.api.dto.TransactionRequest;
 import com.royal.reserve.bank.transaction.api.event.TransactionEvent;
@@ -28,6 +32,7 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AssetManagementClient assetManagementClient;
+    private final RiskAssessmentClient riskAssessmentClient;
     private final KafkaTemplate<String, TransactionEvent> kafkaTemplate;
 
     /**
@@ -35,7 +40,8 @@ public class TransactionService {
      *Process a transaction based on the provided transaction request.
      *@param transactionRequest The transaction request containing the necessary information.
      *@return A string message indicating the result of the transaction processing.
-     *@throws IllegalArgumentException If any of the requested assets are not available.
+     *@throws IllegalArgumentException If any of the requested assets are not available
+     *or if the transaction is rejected by the risk assessment.
      */
     @CacheEvict(value = "assetAvailability", allEntries = true)
     public String processTransaction(TransactionRequest transactionRequest) {
@@ -56,6 +62,9 @@ public class TransactionService {
         boolean assetIsAvailable = checkAssetAvailability(assetCodes);
 
         if (assetIsAvailable) {
+            if (!assessRisk(transaction)) {
+                throw new IllegalArgumentException("Transaction rejected due to high risk");
+            }
             transactionRepository.save(transaction);
             kafkaTemplate.send("notificationTopic", new TransactionEvent(transaction.getTransactionId()));
             return "Transaction completed successfully!";
@@ -75,6 +84,27 @@ public class TransactionService {
         return assetManagementClient.checkAssetAvailability(assetCodes)
                 .stream()
                 .allMatch(AssetManagementResponse::isAssetAvailable);
+    }
+
+    /**
+     * Synchronously asks the Risk Assessment API to evaluate the transaction.
+     *
+     * @param transaction The transaction to assess.
+     * @return true if the transaction was approved, false otherwise.
+     */
+    private boolean assessRisk(Transaction transaction) {
+        RiskAssessmentRequest request = RiskAssessmentRequest.builder()
+                .transactionId(transaction.getTransactionId())
+                .items(transaction.getTransactionItemsList().stream()
+                        .map(item -> RiskAssessmentItem.builder()
+                                .assetCode(item.getAssetCode())
+                                .assetName(item.getAssetName())
+                                .value(item.getValue())
+                                .build())
+                        .toList())
+                .build();
+        RiskAssessmentResponse response = riskAssessmentClient.assessRisk(request);
+        return response != null && response.isApproved();
     }
 
     /**

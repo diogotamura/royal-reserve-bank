@@ -1,5 +1,5 @@
 /**
- * Provides Feign client interfaces for interacting with Asset Management API.
+ * Provides Feign client interfaces for interacting with the Asset Management API and the Risk Assessment API.
  * It includes client interfaces for communicating with various microservices or external systems involved in
  * asset management, payment processing, and other transaction-related operations.
  */
