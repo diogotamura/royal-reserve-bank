@@ -16,10 +16,11 @@
     <version>1.0</version>
 
     <properties>
+        <java.version>19</java.version>
         <spring-cloud.version>2022.0.2</spring-cloud.version>
         <testcontainers-bom.version>1.18.0</testcontainers-bom.version>
         <jib-maven-plugin.version>3.3.0</jib-maven-plugin.version>
-        <eclipse-temurin.version>17.0.7_7-jre</eclipse-temurin.version>
+        <eclipse-temurin.version>19.0.2_7-jre</eclipse-temurin.version>
         <java-jwt.version>4.4.0</java-jwt.version>
         <jwks-rsa.version>0.22.0</jwks-rsa.version>
         <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
